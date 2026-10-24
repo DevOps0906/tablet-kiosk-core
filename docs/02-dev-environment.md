@@ -20,13 +20,29 @@
 |---|---|
 | Flutter SDK (stable) | 앱 빌드 · 실행 |
 | Visual Studio (C++ 데스크톱 개발 워크로드) | 윈도우 앱 실행에 필요 |
-| Android Studio + Android SDK | 에뮬레이터, 안드로이드 빌드 |
+| VS Code + Flutter · Dart 확장 | **메인 편집기** — `kiosk/` 폴더를 통째로 열어 core 와 업종 설계서를 함께 봄 |
+| Android Studio + Android SDK | 에뮬레이터, 안드로이드 빌드 (코드 편집에는 거의 안 씀) |
 | Node.js LTS + pnpm | 사장님 대시보드 |
 | Docker Desktop + Supabase CLI | 로컬 Supabase (`supabase start`) |
 | scrcpy (선택) | 연결한 갤럭시탭 화면을 PC에 띄워 보기 · 녹화 |
 | Git, Claude Code CLI | 작업 |
 
 설치 확인: `flutter doctor`에서 Windows · Android 항목이 모두 체크되어야 합니다.
+
+### 작업 폴더
+
+```
+kiosk/                          ← VS Code 로 이 폴더를 엶
+├── tablet-kiosk-core/          ← Claude Code 는 여기서 실행
+└── tablet-kiosk-<업종>/        ← core 옆에 클론 (core 안에 넣지 않음)
+```
+
+```bash
+cd tablet-kiosk-core
+claude --add-dir ../tablet-kiosk-cafe     # 처음 한 번 /agent-check, 이후 /next-task
+```
+
+Claude Code 는 core 의 `.claude/`(팀 에이전트 · 스킬 · 명령)를 읽습니다. 멀티에이전트 운영은 `docs/11-multi-agent.md`.
 
 ## 3. 화면 크기 맞추기
 
