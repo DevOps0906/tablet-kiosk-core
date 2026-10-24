@@ -50,8 +50,11 @@ tablet-kiosk-core/
 │   │       │   ├── printing/        주문서 양식 → ESC/POS 바이트, 출력 대기열
 │   │       │   ├── setup/           사장님 세팅 5단계
 │   │       │   ├── kiosk_lock/      키오스크 잠금 · PIN 해제
+│   │       │   ├── operation/       운영 방식 · 기기 역할 · 시작 경로 (docs/12)
+│   │       │   ├── table/           테이블 · 열린 계산서 · 차수 · 직원 호출 (docs/12)
 │   │       │   └── data/            Supabase 저장소, drift 로컬 DB, 동기화
 │   │       ├── features/            손님 화면 (start, menu, cart, pay, coupon, done)
+│   │       │                        + table_order/ (테이블 태블릿) · counter/ (카운터 정산)
 │   │       └── verticals/
 │   │           ├── vertical_module.dart   업종 모듈 인터페이스
 │   │           ├── restaurant/

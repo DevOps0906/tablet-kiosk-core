@@ -12,7 +12,7 @@
 | 저장소 | 역할 |
 |---|---|
 | `tablet-kiosk-core` (여기) | 실제 코드: 키오스크 앱, 사장님 대시보드, 서버(Supabase), 기기 연동 |
-| `tablet-kiosk-restaurant` | 식당 설계서: PRD · DESIGN · 화면 명세 · 디자인 원본 |
+| `goki-kiosk-restaurant` | 고깃집 · 식당 설계서: 카운터 키오스크 + 테이블오더 · 카운터 정산 |
 | `tablet-kiosk-cafe` | 카페 설계서 |
 | `tablet-kiosk-burger` | 버거 설계서 |
 
@@ -21,7 +21,7 @@
 ```
 kiosk/
 ├── tablet-kiosk-core/
-├── tablet-kiosk-restaurant/
+├── goki-kiosk-restaurant/
 ├── tablet-kiosk-cafe/
 └── tablet-kiosk-burger/
 ```
@@ -59,6 +59,7 @@ claude --add-dir ../tablet-kiosk-cafe
 | `docs/09-accessibility.md` | 배리어프리 키오스크 대응 |
 | `docs/10-qa-release.md` | 테스트 시나리오, 출시 체크리스트 |
 | `docs/11-multi-agent.md` | 멀티에이전트 팀 구성 · 위임 · 검증 규칙 |
+| `docs/12-operation-modes.md` | 운영 방식(카운터 키오스크 · 테이블오더) · 열린 계산서 · 기기 역할 |
 | `apps/kiosk/CLAUDE.md` | Flutter 앱 전용 규칙 |
 | `apps/admin/CLAUDE.md` | Next.js 대시보드 전용 규칙 |
 
@@ -82,7 +83,7 @@ claude --add-dir ../tablet-kiosk-cafe
 ## 5. 반드시 지킬 규칙
 
 - **기기 직접 호출 금지**: 화면 · 도메인 코드는 카드 단말 · 프린터 · 스캐너를 직접 부르지 않습니다. 반드시 `packages/kiosk_devices`의 인터페이스를 통해 부르고, 진짜 / 가짜 구현을 설정으로 바꿉니다. (`docs/02`, `docs/03`)
-- **업종 분기 금지**: 공통 코드에 `if (vertical == cafe)` 같은 분기를 쓰지 않습니다. 업종 차이는 `verticals/<업종>/` 모듈의 확장 지점으로만 넣습니다. (`docs/08`)
+- **업종 분기 금지**: 공통 코드에 `if (vertical == cafe)` 같은 분기를 쓰지 않습니다. 업종 차이는 `verticals/<업종>/` 모듈의 확장 지점으로만 넣습니다. (`docs/08`) 운영 방식(`operation_mode`) · 기기 역할(`role`)은 업종이 아닌 매장 설정이라 공통 코드에서 분기해도 됩니다 (`docs/12`).
 - **금액은 정수(원)**: 금액은 `int`(원 단위)로만 다룹니다. 실수(double) 금지. 표시는 세 자리 쉼표 + `원`, 글꼴은 JetBrains Mono.
 - **카드 정보 저장 금지**: 카드 번호 등 카드 정보를 앱 · 서버 · 로그 어디에도 저장하지 않습니다. 승인번호 · 마스킹 번호 · 금액만 저장합니다.
 - **결제 중복 방지**: 모든 승인 요청에 멱등 키(idempotency key)를 붙입니다. (`docs/04`)

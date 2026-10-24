@@ -88,6 +88,13 @@ flowchart TB
 | 022 대시보드 | — | nextjs-expert | review · security · contract |
 | 023–024 식당 · 버거 모듈 | plan-challenger | flutter-expert (+ 사원: 메뉴 시드) | review · contract |
 | 027 출시 | — | — | security-auditor 전체 감사 |
+| 028 계산서 스키마 | plan-challenger | supabase-expert (+ 사원: 테이블 · 계산서 시드) | review · security · test-writer |
+| 029 테이블 태블릿 | plan-challenger | flutter-expert | review · contract |
+| 030 카운터 정산 | plan-challenger | flutter-expert | review · security · contract · test-writer |
+| 031 직원 호출 | — | flutter-expert + supabase-expert | review · contract |
+| 032 세팅 · 기기 역할 | plan-challenger | flutter-expert + supabase-expert | review · security |
+| 033 ① 나갈 때 결제 | — | flutter-expert | review |
+| 034 ③ 간편결제 (PG) | plan-challenger | supabase-expert → flutter-expert | review · security · contract · test-writer |
 
 ## 4. 고문 호출 규칙
 

@@ -17,8 +17,8 @@
 
 | 테이블 | 주요 컬럼 | 비고 |
 |---|---|---|
-| `stores` | `id`, `owner_id`(auth.users), `name`, `vertical`(`restaurant`·`cafe`·`burger`), `business_no`, `address`, `phone`, `settings`(jsonb), `created_at` | `settings`: 무입력 시간, 주방 프린터 사용, 금액 인쇄 여부 등 |
-| `devices` | `id`, `store_id`, `name`, `form_factor`(`stand`·`tablet`), `app_version`, `printer_config`(jsonb), `terminal_config`(jsonb), `last_seen_at` | 기기 1대 = 1행 |
+| `stores` | `id`, `owner_id`(auth.users), `name`, `vertical`(`restaurant`·`cafe`·`burger`), `operation_mode`(`counter_prepaid`·`table_postpaid`·`table_prepaid`, 기본 `counter_prepaid`), `business_no`, `address`, `phone`, `settings`(jsonb), `created_at` | `settings`: 무입력 시간, 주방 프린터 사용, 금액 인쇄 여부 등 |
+| `devices` | `id`, `store_id`, `name`, `form_factor`(`stand`·`tablet`), `role`(`entrance_kiosk`·`table`·`counter`), `table_id`(역할 `table`일 때), `app_version`, `printer_config`(jsonb), `terminal_config`(jsonb), `last_seen_at` | 기기 1대 = 1행. 역할은 `docs/12` 2장 |
 | `device_registration_codes` | `code`(6자리), `store_id`, `expires_at`, `used_at`, `device_id` | 세팅 1단계에서 사용 |
 
 ### 메뉴
@@ -35,12 +35,24 @@
 
 | 테이블 | 주요 컬럼 | 비고 |
 |---|---|---|
-| `orders` | `id`, `store_id`, `device_id`, `order_type`(`dine_in`·`takeout`), `status`, `subtotal`, `discount_total`, `total`, `order_no`, `local_temp_no`, `kitchen_status`(`received`·`preparing`·`ready`·`picked_up`), `vertical_data`(jsonb), `created_at`, `paid_at`, `cancelled_at` | 상태는 `docs/04` 1장 |
+| `orders` | `id`, `store_id`, `device_id`, `order_type`(`dine_in`·`takeout`), `status`, `subtotal`, `discount_total`, `total`, `order_no`, `local_temp_no`, `kitchen_status`(`received`·`preparing`·`ready`·`picked_up`), `table_session_id`, `round_no`, `payment_timing`(`prepaid`·`postpaid`), `vertical_data`(jsonb), `created_at`, `paid_at`, `cancelled_at` | 상태는 `docs/04` 1장 · 10장. 테이블오더 주문은 `order_no` 대신 테이블 · 차수 |
 | `order_items` | `id`, `order_id`, `menu_item_id`, `name_snapshot`, `unit_price`, `qty`, `options_snapshot`(jsonb), `line_total`, `kitchen_group` | 식당 분류별 출력용 `kitchen_group` |
-| `order_discounts` | `id`, `order_id`, `coupon_code_id`, `label`, `amount` | |
-| `split_plans` | `order_id`(PK), `mode`(`equal`·`by_item`·`by_amount`), `parts`, `plan`(jsonb) | 더치페이 |
-| `payments` | `id`, `order_id`, `seq`, `amount`, `status`, `idempotency_key`(unique), `approval_no`, `masked_card`, `card_issuer`, `terminal_id`, `payer_label`, `approved_at`, `cancelled_at` | **카드 정보 저장 금지** |
+| `order_discounts` | `id`, `order_id` 또는 `table_session_id`, `coupon_code_id`, `label`, `amount` | ② 쿠폰은 계산서에 적용 |
+| `split_plans` | `id`, `order_id` 또는 `table_session_id`, `mode`(`equal`·`by_item`·`by_amount`), `parts`, `plan`(jsonb) | 더치페이 (② 는 계산서 단위) |
+| `payments` | `id`, `order_id`(① · ③), `table_session_id`(②), `seq`, `method`(`card`·`easy_pay`·`cash`·`transfer`), `amount`, `status`, `idempotency_key`(unique), `approval_no`, `masked_card`, `card_issuer`, `terminal_id`, `pg_order_id`(③, unique), `payer_label`, `approved_at`, `cancelled_at` | **카드 정보 저장 금지**. `order_id` · `table_session_id` 중 하나는 반드시 있음 |
 | `daily_order_counters` | `store_id`, `business_date`, `last_no` (PK: store_id + business_date) | 주문번호 발급 (서버 함수에서 잠금 후 +1) |
+
+### 운영 방식 · 테이블오더 (`docs/12`, task-028)
+
+| 테이블 | 주요 컬럼 | 비고 |
+|---|---|---|
+| `store_tables` | `id`, `store_id`, `zone`(홀 · 룸 …), `label`(번호 `12`), `name`(창가 3), `sort`, `is_active` | 구역 · 번호는 세팅 4-2. `unique (store_id, zone, label)` |
+| `table_sessions` | `id`, `store_id`, `table_id`, `status`(`open`·`billing`·`closed`), `guest_count`, `opened_at`, `bill_requested_at`, `closed_at`, `merged_into`, `last_round_no` | **열린 계산서**. `unique (table_id) where status <> 'closed'` |
+| `order_item_cancellations` | `id`, `order_item_id`, `qty`, `reason`(`customer_change`·`sold_out`·`wrong_order`), `cancelled_by`, `cancelled_at` | 카운터 취소 기록, 금액에서 제외 |
+| `staff_calls` | `id`, `store_id`, `table_id`, `table_session_id`, `items`(text[]), `note`(≤40자), `status`(`open`·`done`), `created_at`, `done_at`, `done_by` | 같은 테이블 · 같은 항목 `open` 중복 금지 |
+
+- 계산서 금액은 저장하지 않고 계산합니다(주문 합계 − 취소 − 할인 − 결제 완료). 집계가 느려지면 뷰 또는 캐시 컬럼으로 승격.
+- 테이블오더 데이터는 업종 테이블이 아닙니다. 어느 업종이든 `operation_mode`가 `table_*`이면 씁니다.
 
 ### 쿠폰
 
@@ -74,6 +86,12 @@ erDiagram
   coupon_campaigns ||--o{ coupon_codes : issues
   coupon_codes ||--o| order_discounts : "applied to"
   stores ||--o{ coupon_campaigns : runs
+  stores ||--o{ store_tables : has
+  store_tables ||--o{ table_sessions : "opens"
+  table_sessions ||--o{ orders : "rounds"
+  table_sessions ||--o{ payments : "settled by"
+  table_sessions ||--o{ staff_calls : "calls"
+  store_tables ||--o| devices : "table tablet"
 ```
 
 ## 4. 접근 권한 (RLS)
@@ -82,6 +100,8 @@ erDiagram
 |---|---|---|
 | 사장님 | `stores.owner_id = auth.uid()` | 자기 매장의 모든 테이블 읽기 · 쓰기 |
 | 키오스크 기기 | 기기 계정 JWT의 `store_id` 클레임 | 메뉴 · 옵션 읽기, `orders` · `order_items` · `payments` · `split_plans` 쓰기(자기 매장), 자기 주문 상태 변경 |
+| 테이블 기기 | JWT `store_id` + `role = table` + `table_id` 클레임 | 메뉴 읽기, **자기 테이블** 열린 계산서 · 주문 · 호출 읽기. 쓰기는 `table-order-submit` · `staff-call` Edge Function 경유만 |
+| 카운터 기기 | JWT `store_id` + `role = counter` | 매장 전체 테이블 · 계산서 · 호출 읽기, 결제 기록. 취소 · 이동 · 합석 · 닫기는 Edge Function 경유 |
 | 손님 · 익명 | — | 직접 접근 없음. 쿠폰 · 스탬프는 Edge Function 경유 |
 
 - 주문번호 발급, 주문 확정, 쿠폰 예약 · 확정은 **Edge Function(서비스 권한)**에서만 처리합니다. 기기가 직접 `daily_order_counters` · `coupon_codes`를 쓰지 않습니다.

@@ -11,13 +11,13 @@
 | 저장소 | 역할 |
 |---|---|
 | **tablet-kiosk-core** (여기) | 실제 코드 — 키오스크 앱(Flutter), 사장님 대시보드(Next.js), 서버(Supabase), 기기 연동 |
-| [tablet-kiosk-restaurant](https://github.com/DevOps0906/tablet-kiosk-restaurant) | 식당 설계서 — 기획 · 디자인 · 화면 명세 |
+| [goki-kiosk-restaurant](https://github.com/DevOps0906/goki-kiosk-restaurant) | 고깃집 · 식당 설계서 — 카운터 키오스크 + **테이블오더(후불 · 선불)** · 카운터 정산 |
 | [tablet-kiosk-cafe](https://github.com/DevOps0906/tablet-kiosk-cafe) | 카페 설계서 (MVP 첫 업종) |
 | [tablet-kiosk-burger](https://github.com/DevOps0906/tablet-kiosk-burger) | 버거 설계서 |
 
 ```mermaid
 flowchart LR
-  R["tablet-kiosk-restaurant<br/>식당 설계서"] -.->|명세 · 디자인| CORE
+  R["goki-kiosk-restaurant<br/>고깃집 · 식당 설계서"] -.->|명세 · 디자인| CORE
   C["tablet-kiosk-cafe<br/>카페 설계서"] -.->|명세 · 디자인| CORE
   B["tablet-kiosk-burger<br/>버거 설계서"] -.->|명세 · 디자인| CORE
   subgraph CORE["tablet-kiosk-core (코드)"]
@@ -61,7 +61,8 @@ tablet-kiosk-core/
 │   ├── 08-vertical-module.md    #   업종 모듈 구조 (식당 · 카페 · 버거를 끼우는 확장 지점)
 │   ├── 09-accessibility.md      #   배리어프리 키오스크 대응 (2026-01-28 시행)
 │   ├── 10-qa-release.md         #   공통 테스트 시나리오 · 실기 체크리스트 · 출시
-│   └── 11-multi-agent.md        #   멀티에이전트 팀 구성 · 위임 · 검증 규칙
+│   ├── 11-multi-agent.md        #   멀티에이전트 팀 구성 · 위임 · 검증 규칙
+│   └── 12-operation-modes.md    #   운영 방식 · 테이블오더 · 열린 계산서 · 기기 역할
 │
 ├── tasks/                       # 개발 작업 목록 (/next-task 가 여기서 다음 작업을 고름)
 │   ├── README.md                #   작업 표(번호 · Phase · 선행 · 상태) · 발견한 문제
@@ -72,7 +73,8 @@ tablet-kiosk-core/
 │   ├── task-016 ~ 017.md        #   Phase 4 실제 기기: LAN 프린터 · VAN 카드 단말
 │   ├── task-018 ~ 022.md        #   Phase 5 더치페이 · 스탬프 · 쿠폰 서버/화면 · 사장님 대시보드
 │   ├── task-023 ~ 026.md        #   Phase 6 식당 · 버거 모듈 · 스탠드형 세로 · 접근성 모드
-│   └── task-027.md              #   Phase 7 QA · 시범 매장 · 출시
+│   ├── task-027.md              #   Phase 7 QA · 시범 매장 · 출시
+│   └── task-028 ~ 034.md        #   Phase 6b 테이블오더: 계산서 스키마 · 테이블 화면 · 카운터 정산 · 호출 · 세팅 · 옵션 · 선불(PG)
 │
 ├── apps/
 │   ├── kiosk/                   # Flutter 키오스크 앱 (손님 화면 + 사장님 세팅)
@@ -91,11 +93,14 @@ tablet-kiosk-core/
 │   │       │   ├── printing/    #       주문서 → ESC/POS · 출력 대기열
 │   │       │   ├── setup/       #       사장님 세팅 5단계
 │   │       │   ├── kiosk_lock/  #       키오스크 잠금 · PIN 해제
+│   │       │   ├── operation/   #       운영 방식 · 기기 역할(입구 · 테이블 · 카운터)
+│   │       │   ├── table/       #       테이블 · 열린 계산서 · 차수 · 직원 호출
 │   │       │   └── data/        #       Supabase · 로컬 DB(drift) · 동기화
 │   │       ├── features/        #     손님 화면 (start · menu · cart · pay · coupon · done)
+│   │       │                    #     + table_order/ (테이블 태블릿) · counter/ (카운터 정산)
 │   │       └── verticals/       #     업종 모듈
 │   │           ├── vertical_module.dart  # 확장 지점 인터페이스
-│   │           ├── restaurant/           # 식당: 인분 · 주류 19세 · 주방 분할 출력
+│   │           ├── restaurant/           # 식당: 인분 · 주류 19세 · 주방 분할 출력 · 호출 항목
 │   │           ├── cafe/                 # 카페: 음료 옵션 · 전화번호 스탬프
 │   │           └── burger/               # 버거: 세트 · 재료 변경 · 주문번호 TV
 │   │
@@ -112,6 +117,7 @@ tablet-kiosk-core/
 │   ├── README.md                #   스키마 kiosk · 폴더 규칙
 │   ├── migrations/              #   (예정 · task-005) 번호 붙은 SQL — 기존 파일 수정 금지
 │   └── functions/               #   (예정 · task-020) coupon-issue · check · reserve · redeem · release
+│                                #   (예정 · task-028) table-order-submit · session-* · staff-call · device-pair
 │
 └── .claude/                     # Claude Code 설정 — 멀티에이전트 팀 (아래 "멀티에이전트 팀" 참고)
     ├── settings.json            #   팀장 모델 (Opus 5.5)
@@ -147,6 +153,7 @@ tablet-kiosk-core/
 | [docs/09-accessibility.md](docs/09-accessibility.md) | 배리어프리 키오스크 대응 |
 | [docs/10-qa-release.md](docs/10-qa-release.md) | 테스트 · 출시 체크리스트 |
 | [docs/11-multi-agent.md](docs/11-multi-agent.md) | **멀티에이전트 팀** 구성 · 위임 · 검증 규칙 |
+| [docs/12-operation-modes.md](docs/12-operation-modes.md) | **운영 방식** — 카운터 키오스크 · 테이블오더(후불 · 선불) · 열린 계산서 · 기기 역할 |
 
 ## 개발 시작하기 (PC 준비)
 
@@ -155,7 +162,7 @@ tablet-kiosk-core/
 ```
 kiosk/                          ← 빈 작업 폴더 하나
 ├── tablet-kiosk-core/          ← ① 실제 코드 (여기서 Claude Code 실행)
-└── tablet-kiosk-restaurant/    ← ② 작업할 업종 설계서 (core 와 나란히)
+└── goki-kiosk-restaurant/      ← ② 작업할 업종 설계서 (core 와 나란히)
 ```
 
 - 업종 저장소는 core **안이 아니라 옆에** 클론합니다. core 안에 넣으면 저장소 안에 저장소가 생겨 git 이 꼬입니다.
@@ -166,7 +173,7 @@ kiosk/                          ← 빈 작업 폴더 하나
 ```bash
 mkdir kiosk && cd kiosk
 git clone https://github.com/DevOps0906/tablet-kiosk-core
-git clone https://github.com/DevOps0906/tablet-kiosk-restaurant   # 식당
+git clone https://github.com/DevOps0906/goki-kiosk-restaurant     # 고깃집 · 식당 (테이블오더)
 git clone https://github.com/DevOps0906/tablet-kiosk-cafe         # 카페 (MVP 첫 업종)
 git clone https://github.com/DevOps0906/tablet-kiosk-burger       # 버거
 ```
@@ -187,7 +194,7 @@ VS Code 터미널에서:
 ```bash
 cd tablet-kiosk-core
 claude --add-dir ../tablet-kiosk-cafe          # 카페 작업 (task-001~022, MVP)
-claude --add-dir ../tablet-kiosk-restaurant    # 식당 작업 (task-023)
+claude --add-dir ../goki-kiosk-restaurant      # 식당 · 테이블오더 (task-023, 028–034)
 claude --add-dir ../tablet-kiosk-burger        # 버거 작업 (task-024)
 ```
 
@@ -198,7 +205,7 @@ Claude Code 안에서:
 /next-task       ← 다음 작업을 골라 계획 → 승인 → 팀으로 진행
 ```
 
-> 식당 모듈은 task-023(Phase 6)입니다. 공통 기반(001–006)과 결제 · 출력 · 쿠폰이 먼저 끝나야 합니다.
+> 식당 모듈은 task-023, 테이블오더는 task-028 ~ 034(Phase 6b)입니다. 공통 기반(001–006)과 결제 · 출력 · 쿠폰이 먼저 끝나야 합니다.
 
 ## 멀티에이전트 팀
 
@@ -307,7 +314,7 @@ Claude Code 세션이 **팀장**이 되어 작업을 나눠 맡기고 검토합�
 ```
 kiosk/
 ├── tablet-kiosk-core/          ← 팀(.claude/)은 여기에만
-└── tablet-kiosk-restaurant/    ← 설계서 — 팀이 읽기만 함 (--add-dir 로 연결)
+└── goki-kiosk-restaurant/      ← 설계서 — 팀이 읽기만 함 (--add-dir 로 연결)
       specs/                       화면 명세 (review-expert 추적표의 기준)
       docs/01-vertical-rules.md    업종 규칙 · 데이터 키 (contract-reviewer 기준)
       docs/02-menu-seed.md         예시 메뉴 (사원이 시드로 변환)
@@ -339,6 +346,7 @@ kiosk/
 | 4 | 실제 기기 (LAN 프린터 · VAN 카드 단말) | 016–017 |
 | 5 | 더치페이 · 스탬프 · 쿠폰 · 대시보드 | 018–022 |
 | 6 | 식당 · 버거 모듈, 스탠드형, 접근성 | 023–026 |
+| 6b | 테이블오더 (운영 방식): 계산서 · 테이블 태블릿 · 카운터 정산 · 호출 · 세팅 · 선불 | 028–034 |
 | 7 | QA · 시범 매장 · 출시 | 027 |
 
 ---

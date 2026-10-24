@@ -8,7 +8,7 @@
 apps/kiosk/lib/verticals/
 ├── vertical_module.dart        인터페이스 (확장 지점 정의)
 ├── vertical_registry.dart      업종 코드 → 모듈 연결
-├── restaurant/                 설계: tablet-kiosk-restaurant
+├── restaurant/                 설계: goki-kiosk-restaurant
 ├── cafe/                       설계: tablet-kiosk-cafe
 └── burger/                     설계: tablet-kiosk-burger
 ```
@@ -47,6 +47,8 @@ verticals/cafe/
 | `doneScreenExtras` | 완료 화면 추가 | 호출번호 안내 | 스탬프 현황 | TV 안내 |
 | `setupExtras` | 세팅 5단계 추가 항목 | 주방 프린터 분류 매핑 | 스탬프 규칙 (10개 = 1잔) | 주문번호 TV 연결 |
 | `adminExtras` | 대시보드 추가 메뉴 | — | 스탬프 회원 | 주문번호 TV 화면 URL |
+| `labels.staffCallItems` | 테이블오더 직원 호출 항목 (`docs/12`) | 불판 교체 · 숯 · 물 · 앞치마 · 가위 · 집게 · 물티슈 · 반찬 리필 · 계산 요청 | 물 · 시럽 · 빨대 · 계산 요청 (가정) | — |
+| `preset.defaultOperationMode` | 세팅 2-2 기본 운영 방식 | `table_postpaid` | `counter_prepaid` | `counter_prepaid` |
 
 모든 확장 지점은 **기본 구현(아무것도 안 함)**이 있어서, 업종 모듈은 필요한 것만 덮어씁니다.
 
@@ -70,6 +72,12 @@ verticals/cafe/
 3. 업종 모듈은 다른 업종 모듈을 import하지 않습니다.
 4. 업종 전용 데이터는 `vertical_attrs` · `vertical_data`(jsonb)에 넣고, 키 목록은 업종 설계 저장소 `docs/01-vertical-rules.md`에 정의합니다.
 5. 업종 모듈마다 테스트 폴더를 두고, 설계 저장소 `specs/`의 시나리오를 테스트로 옮깁니다.
+
+## 4-1. 운영 방식은 업종이 아닙니다
+
+- 카운터 키오스크 / 테이블오더(후불 · 선불)는 `stores.operation_mode` 매장 설정이고, 코드는 `core/operation` · `core/table` · `features/table_order` · `features/counter`에 있습니다 (`docs/12`).
+- 공통 코드는 `operation_mode` · 기기 `role` 값으로 흐름을 고를 수 있습니다. 이것은 업종 분기가 아닙니다. 단, `if (vertical == restaurant && mode == table)`처럼 둘을 섞지 않습니다.
+- 업종 모듈이 테이블오더에 끼어드는 곳은 위 표의 확장 지점뿐입니다 (호출 항목 · 기본 운영 방식 · cartRules 의 첫 주문 여부 · 주방 주문서 블록).
 
 ## 5. 업종 선택과 전환
 

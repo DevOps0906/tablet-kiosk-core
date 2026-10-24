@@ -38,6 +38,13 @@ Phase 2(007–013)는 `docs/00-overview.md` 린 검증 게이트를 확인한 �
 | [task-025](task-025.md) | 6 | 스탠드형 세로 레이아웃 마감 | 013, 018, 021 | 대기 |
 | [task-026](task-026.md) | 6 | 접근성 모드 | 013 | 대기 |
 | [task-027](task-027.md) | 7 | QA · 시범 매장 · 출시 | 015, 016, 017, 019 | 대기 |
+| [task-028](task-028.md) | 6b | 운영 방식 · 테이블 · 열린 계산서 스키마 | 005, 006 | 대기 |
+| [task-029](task-029.md) | 6b | ② 테이블 태블릿 화면 | 028, 008, 012 | 대기 |
+| [task-030](task-030.md) | 6b | 카운터 정산 (현황판 · 계산서 · 결제 · 이동 · 합석) | 029, 011, 018, 021 | 대기 |
+| [task-031](task-031.md) | 6b | 직원 호출 · 서빙 알림 | 029, 030 | 대기 |
+| [task-032](task-032.md) | 6b | 운영 방식 세팅 · 테이블 배치 · 태블릿 역할 | 014, 028 | 대기 |
+| [task-033](task-033.md) | 6b | ① 카운터 키오스크 나갈 때 결제 옵션 | 030 | 대기 |
+| [task-034](task-034.md) | 6b | ③ 테이블 선불 간편결제 (PG) — D9 결정 후 | 030 | 보류 (D9) |
 
 ## Phase 설명
 
@@ -50,6 +57,7 @@ Phase 2(007–013)는 `docs/00-overview.md` 린 검증 게이트를 확인한 �
 | 4 | 실제 기기 | 시범 매장 기기 필요 |
 | 5 | 확장 | MVP 이후 |
 | 6 | 업종 · 형태 확대 | 업종 설계 저장소와 함께 작업 |
+| 6b | 테이블오더 (운영 방식) | `goki-kiosk-restaurant` 설계 기준. 식당 인터뷰로 수요 확인 시 Phase 2 다음으로 앞당길 수 있음 |
 | 7 | 출시 | 시범 매장 2주 |
 
 ## 업종 작업 시
@@ -58,7 +66,7 @@ Phase 2(007–013)는 `docs/00-overview.md` 린 검증 게이트를 확인한 �
 
 ```bash
 claude --add-dir ../tablet-kiosk-cafe        # 카페 (task-009, 019 등)
-claude --add-dir ../tablet-kiosk-restaurant  # 식당 (task-023)
+claude --add-dir ../goki-kiosk-restaurant    # 식당 · 테이블오더 (task-023, 028–034)
 claude --add-dir ../tablet-kiosk-burger      # 버거 (task-024)
 ```
 
