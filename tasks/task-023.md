@@ -1,7 +1,7 @@
 # task-023 식당 모듈
 
 - **Phase**: 6. 업종 · 형태 확대
-- **선행 작업**: task-018, task-021
+- **선행 작업**: task-003 (023a), task-018 · task-021 (023b)
 - **확인 위치**: 윈도우
 
 ## 목표
@@ -16,6 +16,10 @@
 - `docs/08-vertical-module.md`
 
 ## 할 것
+
+> 고깃집 트랙에서는 둘로 나눠 진행합니다 (`../goki-kiosk-restaurant/docs/04-dev-plan.md` 5장).
+> **023a (M3)**: preset · 인분 · 최소 인분 · 주류 배지 · 분류 배너 · 호출 항목 / **023b (M6)**: 인분 더치페이 · 분류별 주방 주문서 세부
+
 
 - [ ] 인분 단위 itemConfigurator · 최소 인분 cartRules
 - [ ] 주류 19 배지 · 분류 배너

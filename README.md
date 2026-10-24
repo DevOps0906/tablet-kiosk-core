@@ -347,6 +347,8 @@ kiosk/
 | 5 | 더치페이 · 스탬프 · 쿠폰 · 대시보드 | 018–022 |
 | 6 | 식당 · 버거 모듈, 스탠드형, 접근성 | 023–026 |
 | 6b | 테이블오더 (운영 방식): 계산서 · 테이블 태블릿 · 카운터 정산 · 호출 · 세팅 · 선불 | 028–034 |
+
+> **고깃집 트랙**: 고깃집 시범 매장을 먼저 확보하면 Phase 2(카페) 대신 테이블오더 MVP를 먼저 만듭니다 — 순서 · 기간 · 범위는 [goki-kiosk-restaurant `docs/04-dev-plan.md`](https://github.com/DevOps0906/goki-kiosk-restaurant/blob/master/docs/04-dev-plan.md), 결정은 `docs/00` D11.
 | 7 | QA · 시범 매장 · 출시 | 027 |
 
 ---
